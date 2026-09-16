@@ -62,9 +62,13 @@ export default function LaunchScene() {
 
     let raf = 0;
     const clock = new THREE.Clock();
+    // pause clock when tab hidden to avoid jumps:
+    let hidden = false;
+    const onVis = () => { hidden = document.hidden; if (!hidden) clock.getDelta(); };
+    document.addEventListener('visibilitychange', onVis);
     const animate = () => {
       raf = requestAnimationFrame(animate);
-      const dt = Math.min(clock.getDelta(), 0.05);
+      const rawDt = Math.min(clock.getDelta(), 0.05); const dt = hidden ? 0 : rawDt;
       elapsed += dt; const loopT = elapsed % LOOP;
       const phase = getPhase(loopT);
       rocket.group.position.y = 3.0 + rocketY(loopT);
@@ -80,7 +84,7 @@ export default function LaunchScene() {
     };
     animate();
 
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); renderer.dispose(); mount.removeChild(renderer.domElement); };
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); document.removeEventListener('visibilitychange', onVis); renderer.dispose(); mount.removeChild(renderer.domElement); };
   }, []);
 
   return <div ref={mountRef} style={{ width: '100vw', height: '100vh' }} data-phase="shell" />;
