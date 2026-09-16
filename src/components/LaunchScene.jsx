@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { buildRocket } from '../three/buildRocket.js';
+import { buildLaunchSite } from '../three/buildLaunchSite.js';
 
 export default function LaunchScene() {
   const mountRef = useRef(null);
@@ -38,6 +40,9 @@ export default function LaunchScene() {
     ground.rotation.x = -Math.PI / 2;
     ground.receiveShadow = true;
     scene.add(ground);
+
+    const rocket = buildRocket(); rocket.group.position.set(0, 3.0, 0); scene.add(rocket.group);
+    const site = buildLaunchSite(); scene.add(site.group);
 
     const onResize = () => {
       const w = mount.clientWidth, h = mount.clientHeight;
