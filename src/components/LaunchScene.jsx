@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { buildRocket } from '../three/buildRocket.js';
 import { buildLaunchSite } from '../three/buildLaunchSite.js';
+import { buildEnvironment } from '../three/buildEnvironment.js';
 
 export default function LaunchScene() {
   const mountRef = useRef(null);
@@ -43,6 +44,7 @@ export default function LaunchScene() {
 
     const rocket = buildRocket(); rocket.group.position.set(0, 3.0, 0); scene.add(rocket.group);
     const site = buildLaunchSite(); scene.add(site.group);
+    const env = buildEnvironment(scene);
 
     const onResize = () => {
       const w = mount.clientWidth, h = mount.clientHeight;
@@ -56,6 +58,7 @@ export default function LaunchScene() {
     const animate = () => {
       raf = requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
+      env.update(dt, clock.elapsedTime);
       camera.lookAt(0, 6, 0);
       renderer.render(scene, camera);
     };
