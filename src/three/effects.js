@@ -53,7 +53,7 @@ export function createExhaust(scene, flameAnchor, engineAnchor) {
     p.vel.set(out.x, up + Math.random() * 2, out.z);
     p.life = 0; p.max = life * (0.7 + Math.random() * 0.6);
     p.grow = size; p.s.scale.setScalar(size * 0.5);
-    p.s.material.opacity = 0.8;
+    p.s.material.opacity = 0.65;
   }
 
   return {
@@ -73,8 +73,8 @@ export function createExhaust(scene, flameAnchor, engineAnchor) {
     update(dt, t, rocketY) {
       if (ignition > 0.02) {
         const base = new THREE.Vector3(0, Math.max(3.0, rocketY - 1.5), 0);
-        const n = rocketY < 8 ? 4 : 2;
-        for (let i = 0; i < n; i++) spawn(base, rocketY < 8 ? 8 : 2.5, rocketY < 8 ? 1.2 : -2, 2.4, 2.8);
+        const n = rocketY < 8 ? 2 : 2;
+        for (let i = 0; i < n; i++) spawn(base, rocketY < 8 ? 6 : 2.5, rocketY < 8 ? 1.2 : -2, 2.4, rocketY < 8 ? 2.2 : 2.8);
       }
       for (const p of puffs) {
         if (!p.s.visible) continue;
@@ -84,7 +84,7 @@ export function createExhaust(scene, flameAnchor, engineAnchor) {
         p.s.position.addScaledVector(p.vel, dt);
         p.vel.y += dt * 0.6; p.vel.multiplyScalar(1 - dt * 0.5);
         p.s.scale.setScalar(p.s.scale.x + dt * p.grow * 1.6);
-        p.s.material.opacity = 0.8 * (1 - k);
+        p.s.material.opacity = 0.65 * (1 - k);
       }
     }
   };

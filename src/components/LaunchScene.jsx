@@ -9,7 +9,6 @@ import { updateCamera } from '../three/cameraRig.js';
 
 export default function LaunchScene() {
   const mountRef = useRef(null);
-  const statusRef = useRef(null);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -66,9 +65,11 @@ export default function LaunchScene() {
     let hidden = false;
     const onVis = () => { hidden = document.hidden; if (!hidden) clock.getDelta(); };
     document.addEventListener('visibilitychange', onVis);
+    let lastPhase = null;
     const animate = () => {
       raf = requestAnimationFrame(animate);
-      const rawDt = Math.min(clock.getDelta(), 0.05); const dt = hidden ? 0 : rawDt;
+      if (hidden) return;
+      const dt = Math.min(clock.getDelta(), 0.05);
       elapsed += dt; const loopT = elapsed % LOOP;
       const phase = getPhase(loopT);
       rocket.group.position.y = 3.0 + rocketY(loopT);
@@ -78,8 +79,11 @@ export default function LaunchScene() {
       exhaust.update(dt, loopT, rocket.group.position.y);
       env.update(dt, clock.elapsedTime);
       updateCamera(camera, rocket.group.position.y - 3.0, dt, loopT);
-      mount.dataset.phase = phase;
-      window.dispatchEvent(new CustomEvent('launch-phase', { detail: phase }));
+      if (phase !== lastPhase) {
+        lastPhase = phase;
+        mount.dataset.phase = phase;
+        window.dispatchEvent(new CustomEvent('launch-phase', { detail: phase }));
+      }
       renderer.render(scene, camera);
     };
     animate();

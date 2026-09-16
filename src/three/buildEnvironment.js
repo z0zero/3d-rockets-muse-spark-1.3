@@ -21,6 +21,7 @@ export function buildEnvironment(scene) {
     tops.setMatrixAt(placed, dummy.matrix);
     placed++;
   }
+  trunks.instanceMatrix.needsUpdate = true; tops.instanceMatrix.needsUpdate = true;
   trunks.castShadow = true; tops.castShadow = true;
   scene.add(trunks, tops);
 
@@ -45,5 +46,6 @@ export function buildEnvironment(scene) {
     hill.scale.y = 0.35; scene.add(hill);
   }
 
-  return { update(dt) { for (const c of clouds) { c.position.x += dt * 0.35; if (c.position.x > 80) c.position.x = -80; } } };
+  // update(dt) ignores 2nd arg (t) passed by caller; signature keeps unused _t for clarity.
+  return { update(dt, _t) { for (const c of clouds) { c.position.x += dt * 0.35; if (c.position.x > 80) c.position.x = -80; } } };
 }
