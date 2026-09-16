@@ -4,6 +4,8 @@ import { buildRocket } from '../three/buildRocket.js';
 import { buildLaunchSite } from '../three/buildLaunchSite.js';
 import { buildEnvironment } from '../three/buildEnvironment.js';
 import { createExhaust } from '../three/effects.js';
+import { getPhase, rocketY, ignitionAmount, LOOP } from '../three/sequence.js';
+import { updateCamera } from '../three/cameraRig.js';
 
 export default function LaunchScene() {
   const mountRef = useRef(null);
@@ -48,7 +50,8 @@ export default function LaunchScene() {
     const env = buildEnvironment(scene);
 
     const exhaust = createExhaust(scene, rocket.flameAnchor, rocket.engineAnchor);
-    exhaust.setIgnition(1.0, 0.016);
+
+    let elapsed = 0; let burstDone = false;
 
     const onResize = () => {
       const w = mount.clientWidth, h = mount.clientHeight;
@@ -62,10 +65,17 @@ export default function LaunchScene() {
     const animate = () => {
       raf = requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
+      elapsed += dt; const loopT = elapsed % LOOP;
+      const phase = getPhase(loopT);
+      rocket.group.position.y = 3.0 + rocketY(loopT);
+      exhaust.setIgnition(ignitionAmount(loopT), dt);
+      if (phase === 'ignition' && !burstDone) { exhaust.burst(60); burstDone = true; }
+      if (phase === 'idle') burstDone = false;
+      exhaust.update(dt, loopT, rocket.group.position.y);
       env.update(dt, clock.elapsedTime);
-      exhaust.setIgnition(1.0, dt);
-      exhaust.update(dt, clock.elapsedTime, rocket.group.position.y);
-      camera.lookAt(0, 6, 0);
+      updateCamera(camera, rocket.group.position.y - 3.0, dt, loopT);
+      mount.dataset.phase = phase;
+      window.dispatchEvent(new CustomEvent('launch-phase', { detail: phase }));
       renderer.render(scene, camera);
     };
     animate();
