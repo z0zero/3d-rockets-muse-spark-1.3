@@ -1,0 +1,63 @@
+import { useEffect, useRef } from 'react';
+import * as THREE from 'three';
+
+export default function LaunchScene() {
+  const mountRef = useRef(null);
+  const statusRef = useRef(null);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    mount.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87bfe8);
+    scene.fog = new THREE.Fog(0x9fcbe8, 60, 220);
+
+    const camera = new THREE.PerspectiveCamera(50, mount.clientWidth / mount.clientHeight, 0.1, 1000);
+    camera.position.set(14, 7, 18);
+
+    const hemi = new THREE.HemisphereLight(0xbfe3ff, 0x6a8f5f, 0.9);
+    scene.add(hemi);
+    const sun = new THREE.DirectionalLight(0xfff2dd, 1.6);
+    sun.position.set(20, 30, 12);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(1024, 1024);
+    sun.shadow.camera.left = -20; sun.shadow.camera.right = 20;
+    sun.shadow.camera.top = 30; sun.shadow.camera.bottom = -10;
+    scene.add(sun);
+
+    const ground = new THREE.Mesh(
+      new THREE.CircleGeometry(120, 48),
+      new THREE.MeshStandardMaterial({ color: 0x7aa968, roughness: 1 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    const onResize = () => {
+      const w = mount.clientWidth, h = mount.clientHeight;
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+    window.addEventListener('resize', onResize);
+
+    let raf = 0;
+    const clock = new THREE.Clock();
+    const animate = () => {
+      raf = requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+      camera.lookAt(0, 6, 0);
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', onResize); renderer.dispose(); mount.removeChild(renderer.domElement); };
+  }, []);
+
+  return <div ref={mountRef} style={{ width: '100vw', height: '100vh' }} data-phase="shell" />;
+}
