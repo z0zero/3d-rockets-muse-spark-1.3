@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { buildRocket } from '../three/buildRocket.js';
 import { buildLaunchSite } from '../three/buildLaunchSite.js';
 import { buildEnvironment } from '../three/buildEnvironment.js';
+import { createExhaust } from '../three/effects.js';
 
 export default function LaunchScene() {
   const mountRef = useRef(null);
@@ -46,6 +47,9 @@ export default function LaunchScene() {
     const site = buildLaunchSite(); scene.add(site.group);
     const env = buildEnvironment(scene);
 
+    const exhaust = createExhaust(scene, rocket.flameAnchor, rocket.engineAnchor);
+    exhaust.setIgnition(1.0, 0.016);
+
     const onResize = () => {
       const w = mount.clientWidth, h = mount.clientHeight;
       camera.aspect = w / h; camera.updateProjectionMatrix();
@@ -59,6 +63,8 @@ export default function LaunchScene() {
       raf = requestAnimationFrame(animate);
       const dt = Math.min(clock.getDelta(), 0.05);
       env.update(dt, clock.elapsedTime);
+      exhaust.setIgnition(1.0, dt);
+      exhaust.update(dt, clock.elapsedTime, rocket.group.position.y);
       camera.lookAt(0, 6, 0);
       renderer.render(scene, camera);
     };
